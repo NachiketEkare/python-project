@@ -64,6 +64,13 @@ jobs:
         role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/GitHubDeployRole
         aws-region: ${{ env.AWS_REGION }}
 
+    - name: Debug – List files in repo
+      run: |
+        echo "Current directory:"
+        pwd
+        echo "Listing tree:"
+        ls -R .
+
     - name: Render New Task Definition
       run: |
         IMAGE_URI="${{ needs.ci.outputs.image_uri }}"
