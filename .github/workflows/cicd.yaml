@@ -10,7 +10,7 @@ permissions:
 
 env:
   AWS_REGION: us-east-1
-  ECR_REPO: predict-api
+  ECR_REPO: 650080740886.dkr.ecr.us-east-1.amazonaws.com/predict-api
   ECS_CLUSTER: predict-service-cluster
   ECS_SERVICE: predict-service-service
   CONTAINER_NAME: fastapi
