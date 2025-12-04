@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      image_uri: ${{ steps.build_image.outputs.image_uri }}
+      image_uri: ${{ steps.build_and_push.outputs.image_uri }}
 
     steps:
     - name: Checkout Code
@@ -39,21 +39,21 @@ jobs:
       uses: aws-actions/amazon-ecr-login@v2
 
     - name: Build & Push Image
-      id: build_image
+      id: build_and_push
       run: |
         IMAGE_TAG=${{ github.sha }}
         IMAGE_URI="$ECR_REPO:$IMAGE_TAG"
 
-        echo "Building image $IMAGE_URI"
-        docker build -t $IMAGE_URI .
+        echo "Building image: $IMAGE_URI"
+        docker build -t "$IMAGE_URI" .
 
-        echo "Pushing image $IMAGE_URI"
-        docker push $IMAGE_URI
+        echo "Pushing image: $IMAGE_URI"
+        docker push "$IMAGE_URI"
 
-        echo "image_uri=$IMAGE_URI" >> $GITHUB_OUTPUT
+        echo "image_uri=$IMAGE_URI" >> "$GITHUB_OUTPUT"
 
   cd:
-    name: Deploy to ECS
+    name: Deploy to ECS Fargate
     runs-on: ubuntu-latest
     needs: ci
 
@@ -64,39 +64,54 @@ jobs:
         role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/GitHubDeployRole
         aws-region: ${{ env.AWS_REGION }}
 
-    - name: Debug – List files in repo
+    - name: Download Current Task Definition
       run: |
-        echo "Current directory:"
-        pwd
-        echo "Listing tree:"
-        ls -R .
+        aws ecs describe-task-definition \
+          --task-definition "$TASK_DEFINITION_FAMILY" \
+          --query taskDefinition > task-def.json
 
-    - name: Render New Task Definition
+    - name: Create New Task Definition JSON with Updated Image
       run: |
         IMAGE_URI="${{ needs.ci.outputs.image_uri }}"
-        sed "s|REPLACE_IMAGE|$IMAGE_URI|g" python-project/.github/taskdef.json > new-task-def.json
+
+        cat task-def.json \
+        | jq --arg IMG "$IMAGE_URI" '
+            .containerDefinitions[0].image = $IMG
+            | del(
+                .taskDefinitionArn,
+                .revision,
+                .status,
+                .registeredAt,
+                .registeredBy,
+                .compatibilities,
+                .requiresAttributes
+              )
+          ' > new-task-def.json
+
+        echo "New task definition:"
+        cat new-task-def.json
 
     - name: Register New Task Definition
-      id: register
+      id: register_task
       run: |
         OUTPUT=$(aws ecs register-task-definition \
           --cli-input-json file://new-task-def.json)
         echo "$OUTPUT"
         ARN=$(echo "$OUTPUT" | jq -r '.taskDefinition.taskDefinitionArn')
-        echo "taskdef_arn=$ARN" >> $GITHUB_OUTPUT
+        echo "taskdef_arn=$ARN" >> "$GITHUB_OUTPUT"
 
-    - name: Update ECS Service
+    - name: Update ECS Service to Use New Task Definition
       run: |
         aws ecs update-service \
-          --cluster $ECS_CLUSTER \
-          --service $ECS_SERVICE \
-          --task-definition ${{ steps.register.outputs.taskdef_arn }}
+          --cluster "$ECS_CLUSTER" \
+          --service "$ECS_SERVICE" \
+          --task-definition "${{ steps.register_task.outputs.taskdef_arn }}"
 
-    - name: Wait for Deployment
+    - name: Wait for ECS Deployment to Stabilize
       run: |
         aws ecs wait services-stable \
-          --cluster $ECS_CLUSTER \
-          --services $ECS_SERVICE
+          --cluster "$ECS_CLUSTER" \
+          --services "$ECS_SERVICE"
 
-    - name: Done
-      run: echo "Deployment Successful!"
+    - name: Deployment Complete
+      run: echo "ECS Deployment Successful!"

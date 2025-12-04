@@ -1,5 +1,5 @@
 resource "aws_secretsmanager_secret" "api_secret" {
-  name = "${var.project}-api-secret"
+  name = "${var.project}-api-mysecret"
 }
 
 resource "aws_secretsmanager_secret_version" "api_secret_value" {
