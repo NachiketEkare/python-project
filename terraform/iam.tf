@@ -146,10 +146,24 @@ resource "aws_iam_policy" "github_deploy_policy" {
           "ecs:ListTaskDefinitions"
         ],
         Resource = "*"
+      },
+
+      #################################################
+      # PassRole Permission (REQUIRED for ECS deploy)
+      #################################################
+      {
+        Effect = "Allow",
+        Action = [
+          "iam:PassRole"
+        ],
+        Resource = [
+          aws_iam_role.task_execution_role.arn
+        ]
       }
     ]
   })
 }
+
 
 resource "aws_iam_role_policy_attachment" "github_deploy_attach" {
   role       = aws_iam_role.github_deploy_role.name
