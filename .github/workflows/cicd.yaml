@@ -74,7 +74,7 @@ jobs:
     - name: Render New Task Definition
       run: |
         IMAGE_URI="${{ needs.ci.outputs.image_uri }}"
-        sed "s|REPLACE_IMAGE|$IMAGE_URI|g" .github/taskdef.json > new-task-def.json
+        sed "s|REPLACE_IMAGE|$IMAGE_URI|g" python-project/.github/taskdef.json > new-task-def.json
 
     - name: Register New Task Definition
       id: register
