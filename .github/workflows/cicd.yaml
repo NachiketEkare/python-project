@@ -121,8 +121,7 @@ jobs:
         aws ecs update-service \
           --cluster "$ECS_CLUSTER" \
           --service "$ECS_SERVICE" \
-          --task-definition "${{ steps.register_task.outputs.taskdef_arn }}" \
-          --desired-count 0
+          --task-definition "${{ steps.register_task.outputs.taskdef_arn }}"
 
     - name: Wait for ECS Deployment to Stabilize
       run: |
