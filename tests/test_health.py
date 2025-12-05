@@ -1,6 +1,11 @@
 from fastapi.testclient import TestClient
 from src.main import app
 
+print("TYPE OF APP:", type(app))
+print("APP OBJECT:", app)
+
+assert isinstance(app, FastAPI)
+
 client = TestClient(app)
 
 def test_health():
