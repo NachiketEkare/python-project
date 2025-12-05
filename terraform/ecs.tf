@@ -16,7 +16,7 @@ resource "aws_ecs_task_definition" "fastapi_task" {
   container_definitions = jsonencode([
     {
       name      = "fastapi"
-      image     = "${aws_ecr_repository.predict_api.repository_url}:initial"
+      image     = "${aws_ecr_repository.predict_api.repository_url}:placeholder"
 
       essential = true
       portMappings = [{
@@ -54,7 +54,7 @@ resource "aws_ecs_service" "service" {
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.fastapi_task.arn
   launch_type     = "FARGATE"
-  desired_count   = 2
+  desired_count   = 0
 
   deployment_minimum_healthy_percent = 100
   deployment_maximum_percent         = 200

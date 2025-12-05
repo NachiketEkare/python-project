@@ -84,7 +84,8 @@ jobs:
       run: |
         aws ecs describe-task-definition \
           --task-definition "$TASK_DEFINITION_FAMILY" \
-          --query taskDefinition > task-def.json
+          --query taskDefinition > task-def.json \
+          --desired-count 2
 
     - name: Create New Task Definition JSON with Updated Image Tag
       run: |
