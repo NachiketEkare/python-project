@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
-from app.main import app as fastapi_app
+from src.main import app
 
-client = TestClient(fastapi_app)
+client = TestClient(app)
 
 def test_health():
     response = client.get("/health")
