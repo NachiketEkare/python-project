@@ -1,4 +1,4 @@
-# python-project
+# 🚀 python-project
 
 This project demonstrates a production-grade deployment of a Python FastAPI service using:
 
@@ -16,7 +16,7 @@ Two simple API endpoints expose application health and prediction score:
 * GET /health   → {"status": "ok"}
 * GET /predict  → {"score": 0.75}
 
-# Architecture Diagram
+# 🏗 Architecture Diagram
 
 <img width="1024" height="1536" alt="architecture_diagram" src="https://github.com/user-attachments/assets/c45e1e01-be48-4f0e-965d-a28586a17695" />
 
@@ -32,7 +32,7 @@ Two simple API endpoints expose application health and prediction score:
 
 * Secrets Manager stores sensitive values securely.
 
-# Features
+# 🔧 Features
 
 * FastAPI Application with /health and /predict routes
 
@@ -56,7 +56,7 @@ Two simple API endpoints expose application health and prediction score:
 
 * AWS Secrets Manager for sensitive configuration
 
-# CICD Workflow
+# ⚙️ CICD Workflow
 
 CI/CD Workflow
 Continuous Integration (CI)
@@ -89,7 +89,7 @@ Continuous Deployment (CD)
 
 * GitHub Actions waits for service stabilization
 
-# Deployment Guide
+# 📁 Deployment Guide
 1. Initialize Terraform
 terraform init
 
@@ -100,7 +100,7 @@ terraform apply -auto-approve
 * http://ALB-DNS/health
 * http://ALB-DNS/predict
 
-# Monitoring, Dashboard and Alerts
+# 📊 Monitoring, Dashboard and Alerts
 CloudWatch Dashboard Includes:
 
 * CPUUtilization
@@ -115,7 +115,7 @@ Alerts Implemented:
 * Unhealthy Target Alarm (ALB)
 * Triggers when ALB detects ≥1 unhealthy container.
 
-# Security Considerations
+# 🔐 Security Considerations
 * IAM Least-Privilege
 
 1. GitHub workflow role can only:
