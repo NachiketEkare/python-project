@@ -16,7 +16,7 @@ resource "aws_ecs_task_definition" "fastapi_task" {
   container_definitions = jsonencode([
     {
       name      = "fastapi"
-      image     = "public.ecr.aws/docker/library/hello-world:latest"
+      image     = "public.ecr.aws/nginx/nginx:latest"
 
       essential = true
       portMappings = [{
