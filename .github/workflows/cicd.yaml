@@ -19,7 +19,7 @@ env:
 
 jobs:
   ci:
-    name: Build & Push Image to ECR
+    name: Build,Test & Push Image to ECR
     runs-on: ubuntu-latest
 
     outputs:
@@ -28,6 +28,19 @@ jobs:
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.9"
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+
+    - name: Run Unit Tests
+      run: |
+        pytest -q
 
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
