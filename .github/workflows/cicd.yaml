@@ -20,7 +20,7 @@ env:
 
 jobs:
   ci:
-    name: Build,Test & Push Image to ECR
+    name: Build, Test & Push Image to ECR
     runs-on: ubuntu-latest
 
     outputs:
@@ -36,15 +36,13 @@ jobs:
         python-version: "3.9"
 
     - name: Install dependencies
-      run: |
-        pip install -r requirements.txt
+      run: pip install -r requirements.txt
 
     - name: Add project root to PYTHONPATH
       run: echo "PYTHONPATH=$PWD" >> $GITHUB_ENV
 
     - name: Run Unit Tests
-      run: |
-        pytest -q
+      run: pytest -q
 
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
@@ -69,6 +67,7 @@ jobs:
 
         echo "image_uri=$IMAGE_URI" >> "$GITHUB_OUTPUT"
 
+
   cd:
     name: Deploy to ECS Fargate
     runs-on: ubuntu-latest
@@ -87,7 +86,7 @@ jobs:
           --task-definition "$TASK_DEFINITION_FAMILY" \
           --query taskDefinition > task-def.json
 
-    - name: Create New Task Definition JSON with Updated Image
+    - name: Create New Task Definition JSON with Updated Image Tag
       run: |
         IMAGE_URI="${{ needs.ci.outputs.image_uri }}"
 
@@ -105,7 +104,7 @@ jobs:
               )
           ' > new-task-def.json
 
-        echo "New task definition:"
+        echo "Generated new task definition:"
         cat new-task-def.json
 
     - name: Register New Task Definition
@@ -131,4 +130,4 @@ jobs:
           --services "$ECS_SERVICE"
 
     - name: Deployment Complete
-      run: echo "ECS Deployment Successful!"
+      run: echo "🚀 ECS Deployment Successful!"

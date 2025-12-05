@@ -16,7 +16,8 @@ resource "aws_ecs_task_definition" "fastapi_task" {
   container_definitions = jsonencode([
     {
       name      = "fastapi"
-      image     = "DUMMY"
+      image     = "${aws_ecr_repository.predict_api.repository_url}:initial"
+
       essential = true
       portMappings = [{
         containerPort = var.container_port
@@ -73,5 +74,4 @@ resource "aws_ecs_service" "service" {
     aws_lb_listener.http_listener
   ]
 }
-
 
