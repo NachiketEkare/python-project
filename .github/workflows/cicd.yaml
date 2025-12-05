@@ -84,8 +84,7 @@ jobs:
       run: |
         aws ecs describe-task-definition \
           --task-definition "$TASK_DEFINITION_FAMILY" \
-          --query taskDefinition > task-def.json \
-          --desired-count 2
+          --query taskDefinition > task-def.json
 
     - name: Create New Task Definition JSON with Updated Image Tag
       run: |
@@ -122,7 +121,8 @@ jobs:
         aws ecs update-service \
           --cluster "$ECS_CLUSTER" \
           --service "$ECS_SERVICE" \
-          --task-definition "${{ steps.register_task.outputs.taskdef_arn }}"
+          --task-definition "${{ steps.register_task.outputs.taskdef_arn }}" \
+          --desired-count 2
 
     - name: Wait for ECS Deployment to Stabilize
       run: |
