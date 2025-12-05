@@ -9,6 +9,7 @@ permissions:
   contents: read
 
 env:
+  APP_VERSION: "v1.0.0"
   AWS_REGION: us-east-1
   ECR_REPO: 650080740886.dkr.ecr.us-east-1.amazonaws.com/predict-api
   ECS_CLUSTER: predict-service-cluster
@@ -57,7 +58,7 @@ jobs:
     - name: Build & Push Image
       id: build_and_push
       run: |
-        IMAGE_TAG=${{ github.sha }}
+        IMAGE_TAG="${APP_VERSION}-${GITHUB_SHA::7}"
         IMAGE_URI="$ECR_REPO:$IMAGE_TAG"
 
         echo "Building image: $IMAGE_URI"
