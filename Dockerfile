@@ -1,36 +1,34 @@
 ########## Stage 1: Build ##########
-FROM python:3.11-slim AS builder
+FROM python:3.11-alpine AS builder
 
 WORKDIR /app
 
-# Install dependencies into a local user directory
+# Install build dependencies (only for this stage)
+RUN apk add --no-cache build-base
+
 COPY requirements.txt .
-RUN pip install --user --no-cache-dir -r requirements.txt
+RUN pip install --prefix=/install --no-cache-dir -r requirements.txt
 
 
-########## Stage 2: Final Runtime Image ##########
-FROM python:3.11-slim
+########## Stage 2: Final Runtime ##########
+FROM python:3.11-alpine
 
-# Create a non-root user
-RUN useradd -m appuser
+# Create non-root user
+RUN adduser -D appuser
 USER appuser
 
 WORKDIR /app
 
-# Copy installed packages from builder
-COPY --from=builder /root/.local /home/appuser/.local
+# Copy installed python packages
+COPY --from=builder /install /usr/local
 
-# Make installed packages discoverable
-ENV PATH=/home/appuser/.local/bin:$PATH
-
-# Copy application source code
+# Copy source code
 COPY src/ ./src/
-
-# Healthcheck for ECS / Docker
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s \
-  CMD curl -f http://localhost:8000/health || exit 1
 
 EXPOSE 8000
 
-# Correct entrypoint
+# Healthcheck
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s \
+  CMD wget -qO- http://localhost:8000/health || exit 1
+
 CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
