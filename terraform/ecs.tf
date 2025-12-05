@@ -16,7 +16,7 @@ resource "aws_ecs_task_definition" "fastapi_task" {
   container_definitions = jsonencode([
     {
       name      = "fastapi"
-      image     = "${aws_ecr_repository.predict_api.repository_url}:latest"
+      image     = "DUMMY"
       essential = true
       portMappings = [{
         containerPort = var.container_port
