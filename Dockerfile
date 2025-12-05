@@ -1,5 +1,5 @@
 ########## Stage 1: Build ##########
-FROM python:3.11-alpine AS builder
+FROM python:3.11-slim AS builder
 
 WORKDIR /app
 
@@ -10,8 +10,8 @@ COPY requirements.txt .
 RUN pip install --prefix=/install --no-cache-dir -r requirements.txt
 
 
-########## Stage 2: Final Runtime ##########
-FROM python:3.11-alpine
+########## Stage 2: Runtime (Distroless) ##########
+FROM gcr.io/distroless/python3
 
 # Create non-root user
 RUN adduser -D appuser
