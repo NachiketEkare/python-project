@@ -3,13 +3,14 @@ FROM python:3.11-alpine AS builder
 
 WORKDIR /app
 
-# Install build dependencies for Alpine
+# Install build tools
 RUN apk add --no-cache build-base
 
-# Install python deps into /install
+# Install dependencies into /install
 COPY requirements.txt .
 RUN pip install --prefix=/install --no-cache-dir -r requirements.txt
 
+# Copy source
 COPY src ./src
 
 
@@ -18,15 +19,15 @@ FROM gcr.io/distroless/python3-debian12
 
 WORKDIR /app
 
-# Copy dependencies
+# Copy installed Python packages
 COPY --from=builder /install /usr/local
 
-# Copy application
+# Copy code
 COPY --from=builder /app/src ./src
 
 EXPOSE 8000
 
-# Distroless has no curl/wget → use python for healthcheck
+# HEALTHCHECK must use Python (distroless has no curl)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s \
   CMD ["python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
 
