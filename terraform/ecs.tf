@@ -89,7 +89,7 @@ resource "aws_security_group" "ecs_sg" {
 #############################################
 
 resource "aws_ecs_service" "service" {
-  name            = "${var.project}-service"
+  name            = "${var.project}-ecs-service"
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.fastapi_task.arn
   launch_type     = "FARGATE"
