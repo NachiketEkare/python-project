@@ -130,4 +130,4 @@ jobs:
           --services "$ECS_SERVICE"
 
     - name: Deployment Complete
-      run: echo "🚀 ECS Deployment Successful!"
+      run: echo "ECS Deployment Successful!"
