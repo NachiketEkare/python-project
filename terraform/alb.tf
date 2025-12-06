@@ -56,6 +56,7 @@ resource "aws_lb_target_group" "tg" {
   health_check {
     path = "/health"
     port = var.container_port
+    matcher = "200"
   }
 }
 

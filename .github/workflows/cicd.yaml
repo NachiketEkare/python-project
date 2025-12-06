@@ -13,7 +13,7 @@ env:
   AWS_REGION: us-east-1
   ECR_REPO: 650080740886.dkr.ecr.us-east-1.amazonaws.com/healthy-api
   ECS_CLUSTER: predict-service-cluster
-  ECS_SERVICE: predict-service-service
+  ECS_SERVICE: health-service
   CONTAINER_NAME: fastapi
   TASK_DEFINITION_FAMILY: predict-service-task
   AWS_ACCOUNT_ID: 650080740886

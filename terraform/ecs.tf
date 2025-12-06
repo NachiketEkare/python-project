@@ -16,14 +16,13 @@ resource "aws_ecs_task_definition" "fastapi_task" {
   container_definitions = jsonencode([
     {
       name      = "fastapi"
-      image     = "python:3-alpine"
+      image     = "${aws_ecr_repository.predict_api.repository_url}:latest"
 
       essential = true
       portMappings = [{
         containerPort = var.container_port
         protocol      = "tcp"
       }]
-      command = ["python", "-m", "http.server", tostring(var.container_port)]
     }
   ])
 }
@@ -69,10 +68,6 @@ resource "aws_ecs_service" "service" {
     container_name   = "fastapi"
     container_port   = var.container_port
     target_group_arn = aws_lb_target_group.tg.arn
-  }
-
-  lifecycle {
-    ignore_changes = [task_definition]
   }
 
   depends_on = [
