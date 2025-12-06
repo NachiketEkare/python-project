@@ -1,8 +1,38 @@
+#############################################
+# ECS Cluster
+#############################################
+
 resource "aws_ecs_cluster" "main" {
   name = "${var.project}-cluster"
 }
 
-// task definition
+#############################################
+# IAM Roles (Execution Role for ECS Tasks)
+#############################################
+
+resource "aws_iam_role" "ecs_task_execution_role" {
+  name = "${var.project}-ecs-execution-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = {
+        Service = "ecs-tasks.amazonaws.com"
+      }
+    }]
+  })
+}
+
+# resource "aws_iam_role_policy_attachment" "ecs_execution_policy" {
+#   role       = aws_iam_role.ecs_task_execution_role.name
+#   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+# }
+
+#############################################
+# ECS Task Definition (FASTAPI)
+#############################################
 
 resource "aws_ecs_task_definition" "fastapi_task" {
   family                   = "${var.project}-task"
@@ -11,7 +41,7 @@ resource "aws_ecs_task_definition" "fastapi_task" {
   cpu                      = "256"
   memory                   = "512"
 
-  execution_role_arn = aws_iam_role.task_execution_role.arn
+  execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
 
   container_definitions = jsonencode([
     {
@@ -19,15 +49,25 @@ resource "aws_ecs_task_definition" "fastapi_task" {
       image     = "${aws_ecr_repository.predict_api.repository_url}:latest"
 
       essential = true
+
       portMappings = [{
         containerPort = var.container_port
+        hostPort      = var.container_port
         protocol      = "tcp"
       }]
+
+      command = [
+        "uvicorn", "src.main:app",
+        "--host", "0.0.0.0",
+        "--port", tostring(var.container_port)
+      ]
     }
   ])
 }
 
-// ecs security group
+#############################################
+# ECS Security Group (Allows ALB -> ECS only)
+#############################################
 
 resource "aws_security_group" "ecs_sg" {
   name   = "${var.project}-ecs-sg"
@@ -37,7 +77,7 @@ resource "aws_security_group" "ecs_sg" {
     from_port       = var.container_port
     to_port         = var.container_port
     protocol        = "tcp"
-    security_groups = [aws_security_group.alb_sg.id]
+    security_groups = [aws_security_group.alb_sg.id]   # Allow ONLY ALB
   }
 
   egress {
@@ -47,7 +87,10 @@ resource "aws_security_group" "ecs_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
-// ecs service
+
+#############################################
+# ECS Service (Fargate)
+#############################################
 
 resource "aws_ecs_service" "service" {
   name            = "${var.project}-service"
@@ -62,6 +105,7 @@ resource "aws_ecs_service" "service" {
   network_configuration {
     subnets         = module.vpc.private_subnets
     security_groups = [aws_security_group.ecs_sg.id]
+    assign_public_ip = false    # Must have NAT Gateway
   }
 
   load_balancer {
@@ -70,8 +114,11 @@ resource "aws_ecs_service" "service" {
     target_group_arn = aws_lb_target_group.tg.arn
   }
 
+  lifecycle {
+    ignore_changes = [task_definition]
+  }
+
   depends_on = [
     aws_lb_listener.http_listener
   ]
 }
-
