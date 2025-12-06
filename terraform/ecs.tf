@@ -26,9 +26,7 @@ resource "aws_iam_role" "ecs_task_role" {
   })
 }
 
-#############################################
 # ECS Task Definition (FASTAPI)
-#############################################
 
 resource "aws_ecs_task_definition" "fastapi_task" {
   family                   = "${var.project}-task"
