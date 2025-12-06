@@ -110,10 +110,6 @@ resource "aws_ecs_service" "service" {
     target_group_arn = aws_lb_target_group.tg.arn
   }
 
-  lifecycle {
-    ignore_changes = [task_definition]
-  }
-
   depends_on = [
     aws_lb_listener.http_listener
   ]
