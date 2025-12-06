@@ -22,6 +22,12 @@ resource "aws_iam_role_policy_attachment" "ecs_execution_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+# ECS needs this for ECR image pulls
+resource "aws_iam_role_policy_attachment" "execution_ecr_policy" {
+  role       = aws_iam_role.task_execution_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+}
+
 ############################################
 # ALLOW ECS TASK TO READ SECRETS
 ############################################
