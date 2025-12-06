@@ -38,7 +38,7 @@ resource "aws_ecs_task_definition" "fastapi_task" {
   memory                   = "512"
 
   execution_role_arn = aws_iam_role.task_execution_role.arn
-  task_role_arn      = aws_iam_role.ecs_task_role.arn   # App can access AWS APIs
+  task_role_arn      = aws_iam_role.ecs_task_role.arn # App can access AWS APIs
 
   container_definitions = jsonencode([
     {
@@ -73,7 +73,7 @@ resource "aws_security_group" "ecs_sg" {
     from_port       = var.container_port
     to_port         = var.container_port
     protocol        = "tcp"
-    security_groups = [aws_security_group.alb_sg.id]   # Allow ONLY ALB
+    security_groups = [aws_security_group.alb_sg.id] # Allow ONLY ALB
   }
 
   egress {
@@ -101,7 +101,7 @@ resource "aws_ecs_service" "service" {
   network_configuration {
     subnets          = module.vpc.private_subnets
     security_groups  = [aws_security_group.ecs_sg.id]
-    assign_public_ip = false    # Must have NAT Gateway
+    assign_public_ip = false # Must have NAT Gateway
   }
 
   load_balancer {

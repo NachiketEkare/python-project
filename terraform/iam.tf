@@ -55,8 +55,8 @@ resource "aws_iam_role_policy_attachment" "attach_secret_policy" {
 ############################################
 
 resource "aws_iam_openid_connect_provider" "github" {
-  url = "https://token.actions.githubusercontent.com"
-  client_id_list = ["sts.amazonaws.com"]
+  url             = "https://token.actions.githubusercontent.com"
+  client_id_list  = ["sts.amazonaws.com"]
   thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
 }
 
@@ -139,7 +139,8 @@ resource "aws_iam_policy" "github_deploy_policy" {
           "iam:PassRole"
         ],
         Resource = [
-          aws_iam_role.task_execution_role.arn
+          aws_iam_role.task_execution_role.arn,
+          aws_iam_role.ecs_task_role.arn
         ]
       }
     ]

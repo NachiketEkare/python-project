@@ -54,8 +54,8 @@ resource "aws_lb_target_group" "tg" {
   target_type = "ip"
 
   health_check {
-    path = "/health"
-    port = var.container_port
+    path    = "/health"
+    port    = var.container_port
     matcher = "200"
   }
 }
