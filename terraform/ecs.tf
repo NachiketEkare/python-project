@@ -16,13 +16,14 @@ resource "aws_ecs_task_definition" "fastapi_task" {
   container_definitions = jsonencode([
     {
       name      = "fastapi"
-      image     = "public.ecr.aws/nginx/nginx:latest"
+      image     = "python:3-alpine"
 
       essential = true
       portMappings = [{
         containerPort = var.container_port
         protocol      = "tcp"
       }]
+      command = ["python", "-m", "http.server", tostring(var.container_port)]
     }
   ])
 }
