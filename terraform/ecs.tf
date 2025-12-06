@@ -6,31 +6,6 @@ resource "aws_ecs_cluster" "main" {
   name = "${var.project}-cluster"
 }
 
-#############################################
-# IAM Roles (Execution Role for ECS Tasks)
-#############################################
-
-# Execution Role (ECS pulls image from ECR + writes logs)
-resource "aws_iam_role" "ecs_task_execution_role" {
-  name = "${var.project}-ecs-execution-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [{
-      Action = "sts:AssumeRole",
-      Effect = "Allow",
-      Principal = {
-        Service = "ecs-tasks.amazonaws.com"
-      }
-    }]
-  })
-}
-
-# Attach AWS-managed execution role policy
-resource "aws_iam_role_policy_attachment" "ecs_execution_policy" {
-  role       = aws_iam_role.ecs_task_execution_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
-}
 
 #############################################
 # OPTIONAL: Task Role (for app permissions)
@@ -62,7 +37,7 @@ resource "aws_ecs_task_definition" "fastapi_task" {
   cpu                      = "256"
   memory                   = "512"
 
-  execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
+  execution_role_arn = aws_iam_role.task_execution_role.arn
   task_role_arn      = aws_iam_role.ecs_task_role.arn   # App can access AWS APIs
 
   container_definitions = jsonencode([
