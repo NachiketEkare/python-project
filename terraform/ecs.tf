@@ -7,6 +7,51 @@ resource "aws_ecs_cluster" "main" {
 }
 
 #############################################
+# IAM Roles (Execution Role for ECS Tasks)
+#############################################
+
+# Execution Role (ECS pulls image from ECR + writes logs)
+resource "aws_iam_role" "ecs_task_execution_role" {
+  name = "${var.project}-ecs-execution-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Action = "sts:AssumeRole",
+      Effect = "Allow",
+      Principal = {
+        Service = "ecs-tasks.amazonaws.com"
+      }
+    }]
+  })
+}
+
+# Attach AWS-managed execution role policy
+resource "aws_iam_role_policy_attachment" "ecs_execution_policy" {
+  role       = aws_iam_role.ecs_task_execution_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+#############################################
+# OPTIONAL: Task Role (for app permissions)
+#############################################
+
+resource "aws_iam_role" "ecs_task_role" {
+  name = "${var.project}-ecs-task-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Action = "sts:AssumeRole",
+      Effect = "Allow",
+      Principal = {
+        Service = "ecs-tasks.amazonaws.com"
+      }
+    }]
+  })
+}
+
+#############################################
 # ECS Task Definition (FASTAPI)
 #############################################
 
@@ -17,8 +62,8 @@ resource "aws_ecs_task_definition" "fastapi_task" {
   cpu                      = "256"
   memory                   = "512"
 
-  execution_role_arn = aws_iam_role.task_execution_role.arn
-  task_role_arn      = aws_iam_role.ecs_task_role.arn
+  execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
+  task_role_arn      = aws_iam_role.ecs_task_role.arn   # App can access AWS APIs
 
   container_definitions = jsonencode([
     {
@@ -42,7 +87,7 @@ resource "aws_ecs_task_definition" "fastapi_task" {
 }
 
 #############################################
-# ECS Security Group
+# ECS Security Group (Allows ALB -> ECS only)
 #############################################
 
 resource "aws_security_group" "ecs_sg" {
@@ -53,7 +98,7 @@ resource "aws_security_group" "ecs_sg" {
     from_port       = var.container_port
     to_port         = var.container_port
     protocol        = "tcp"
-    security_groups = [aws_security_group.alb_sg.id]
+    security_groups = [aws_security_group.alb_sg.id]   # Allow ONLY ALB
   }
 
   egress {
@@ -65,7 +110,7 @@ resource "aws_security_group" "ecs_sg" {
 }
 
 #############################################
-# ECS Service
+# ECS Service (Fargate)
 #############################################
 
 resource "aws_ecs_service" "service" {
@@ -73,18 +118,25 @@ resource "aws_ecs_service" "service" {
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.fastapi_task.arn
   launch_type     = "FARGATE"
-  desired_count   = 1
+  desired_count   = 2
+
+  deployment_minimum_healthy_percent = 100
+  deployment_maximum_percent         = 200
 
   network_configuration {
-    subnets         = module.vpc.private_subnets
-    security_groups = [aws_security_group.ecs_sg.id]
-    assign_public_ip = false
+    subnets          = module.vpc.private_subnets
+    security_groups  = [aws_security_group.ecs_sg.id]
+    assign_public_ip = false    # Must have NAT Gateway
   }
 
   load_balancer {
     container_name   = "fastapi"
     container_port   = var.container_port
     target_group_arn = aws_lb_target_group.tg.arn
+  }
+
+  lifecycle {
+    ignore_changes = [task_definition]
   }
 
   depends_on = [
