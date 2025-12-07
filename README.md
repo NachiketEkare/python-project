@@ -94,7 +94,7 @@ Continuous Deployment (CD)
 terraform init
 
 2. Provision Infrastructure
-terraform apply -auto-approve
+terraform apply --auto-approve
 
 3. Test Application :
 * http://ALB-DNS/health
